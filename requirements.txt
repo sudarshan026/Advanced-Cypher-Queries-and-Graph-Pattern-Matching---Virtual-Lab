@@ -1,0 +1,6 @@
+streamlit
+pyvis
+fpdf
+groq
+pandas
+numpy

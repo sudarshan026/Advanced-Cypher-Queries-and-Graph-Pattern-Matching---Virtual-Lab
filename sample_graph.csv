@@ -1,0 +1,6 @@
+Source,Relationship,Target
+Alice,KNOWS,Bob
+Bob,LIKES,Pizza
+Alice,WORKS_AT,TechCorp
+TechCorp,LOCATED_IN,New York
+Bob,LIVES_IN,New York
