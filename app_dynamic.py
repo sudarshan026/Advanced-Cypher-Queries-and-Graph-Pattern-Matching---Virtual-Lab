@@ -955,7 +955,10 @@ def generate_pdf_report(student_name, student_id, date_str,
     pdf.set_font("Helvetica", "I", 8); pdf.set_text_color(100, 100, 100)
     pdf.cell(60, 4, "Instructor / Student Signature", align="C")
 
-    return bytes(pdf.output())
+    out = pdf.output(dest='S')
+    if isinstance(out, str):
+        return out.encode('latin-1')
+    return bytes(out)
 
 
 # ======================================================================================
@@ -1590,10 +1593,10 @@ def render_report_section():
     c1, c2, c3 = st.columns(3)
     with c1:
         student_name = st.text_input("Student Name",
-                                     value=st.session_state["student_info"].get("name", "Student Name"))
+                                     value=st.session_state["student_info"].get("name", ""))
     with c2:
         student_id = st.text_input("Student Roll / ID",
-                                   value=st.session_state["student_info"].get("id", "EXP-001"))
+                                   value=st.session_state["student_info"].get("id", ""))
     with c3:
         lab_date = st.date_input("Experiment Date", value=datetime.now())
 
@@ -1661,7 +1664,7 @@ def init_session_state():
         "quiz_answers": {},
         "quiz_submitted": False,
         "quiz_score": 0,
-        "student_info": {"name": "Student Name", "id": "EXP-001", "date": str(datetime.now().date())},
+        "student_info": {"name": "", "id": "", "date": str(datetime.now().date())},
         "student_notes": "",
         "current_sim_result": None,
         "groq_api_key": "",
