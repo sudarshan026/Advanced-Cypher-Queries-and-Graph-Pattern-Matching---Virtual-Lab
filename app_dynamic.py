@@ -17,6 +17,7 @@ import json
 import traceback
 from datetime import datetime
 from collections import defaultdict, deque
+import textwrap
 
 import numpy as np
 import pandas as pd
@@ -860,7 +861,7 @@ class LabReportPDF(FPDF):
 
 
 def generate_pdf_report(student_name, student_id, date_str,
-                        trials_df, quiz_score, quiz_total, student_notes):
+                        trials_df, quiz_score, quiz_total, student_notes, nodes, edges):
     """Compile experiment records into a formatted PDF report."""
     pdf = LabReportPDF()
     pdf.alias_nb_pages()
@@ -945,7 +946,39 @@ def generate_pdf_report(student_name, student_id, date_str,
         "The Cypher query experiments demonstrated effective graph pattern matching across varying "
         "traversal depths and aggregation operations, confirming graph-based retrieval efficiency."
     )
-    pdf.multi_cell(0, 5, notes_text)
+    notes_text = notes_text.encode('latin-1', 'replace').decode('latin-1')
+    for line in textwrap.wrap(notes_text, width=100, break_long_words=True):
+        pdf.set_x(18)
+        pdf.cell(0, 5, line, new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(8)
+    
+    # Graph Structure Details
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 11); pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 7, "4. Graph Structure Snapshot", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "B", 9); pdf.set_text_color(51, 65, 85)
+    pdf.cell(0, 6, f"Total Nodes: {len(nodes)}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 8)
+    for n in nodes:
+        props = str(n.get("properties", {}))
+        txt = f"Node {n['id']} ({n.get('label', '')}): {props}"
+        txt = txt.encode('latin-1', 'replace').decode('latin-1')
+        for line in textwrap.wrap(txt, width=90, break_long_words=True):
+            pdf.set_x(18)
+            pdf.cell(0, 5, line, new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.cell(0, 6, f"Total Edges: {len(edges)}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 8)
+    for e in edges:
+        props = str(e.get("properties", {}))
+        source = e.get('from', e.get('source', 'Unknown'))
+        target = e.get('to', e.get('target', 'Unknown'))
+        txt = f"Edge: {source} -[{e.get('type', '')}]-> {target} : {props}"
+        txt = txt.encode('latin-1', 'replace').decode('latin-1')
+        for line in textwrap.wrap(txt, width=90, break_long_words=True):
+            pdf.set_x(18)
+            pdf.cell(0, 5, line, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(8)
 
     # Sign-off
@@ -1631,7 +1664,8 @@ def render_report_section():
 
     pdf_bytes = generate_pdf_report(
         student_name, student_id, str(lab_date), trials_df,
-        st.session_state.get("quiz_score", 0), len(QUIZ_QUESTIONS), student_notes
+        st.session_state.get("quiz_score", 0), len(QUIZ_QUESTIONS), student_notes,
+        st.session_state["graph_nodes"], st.session_state["graph_edges"]
     )
 
     os.makedirs("static", exist_ok=True)
