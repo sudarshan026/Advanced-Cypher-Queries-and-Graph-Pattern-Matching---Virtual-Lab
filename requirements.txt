@@ -1,6 +1,6 @@
 streamlit
 pyvis
-fpdf
+fpdf2
 groq
 pandas
 numpy
